@@ -7,4 +7,6 @@ abstract class ConstPath {
 
   static var APP_ICON = "$_imageDirectory/app_icon.png";
   static var LOGIN_ILLUSTRATION = "$_imageDirectory/login_illustration.png";
+  static var REGISTER_ILLUSTRATION =
+      "$_imageDirectory/register_illustration.png";
 }

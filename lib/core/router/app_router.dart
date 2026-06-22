@@ -1,22 +1,31 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:notelife/di/injection.dart';
-import 'package:notelife/presentation/link/link_bloc.dart';
-import 'package:notelife/presentation/link/link_view.dart';
-import 'package:notelife/presentation/login/login_bloc.dart';
-import 'package:notelife/presentation/login/login_view.dart';
-import 'package:notelife/presentation/pomodoro/pomodoro_bloc.dart';
-import 'package:notelife/presentation/pomodoro/pomodoro_view.dart';
-import 'package:notelife/presentation/task/task_view.dart';
-import 'package:notelife/presentation/wrapper/wrapper_view.dart';
+import 'package:notelife/presentation/pages/account/account_bloc.dart';
+import 'package:notelife/presentation/pages/account/account_view.dart';
+import 'package:notelife/presentation/pages/forgot_password/forgot_password_bloc.dart';
+import 'package:notelife/presentation/pages/forgot_password/forgot_password_view.dart';
+import 'package:notelife/presentation/pages/link/link_bloc.dart';
+import 'package:notelife/presentation/pages/link/link_view.dart';
+import 'package:notelife/presentation/pages/login/login_bloc.dart';
+import 'package:notelife/presentation/pages/login/login_view.dart';
+import 'package:notelife/presentation/pages/pomodoro/pomodoro_bloc.dart';
+import 'package:notelife/presentation/pages/pomodoro/pomodoro_view.dart';
+import 'package:notelife/presentation/pages/register/register_bloc.dart';
+import 'package:notelife/presentation/pages/task/task_view.dart';
+import 'package:notelife/presentation/pages/wrapper/wrapper_view.dart';
 
-import '../../presentation/splash/splash_view.dart';
-import '../../presentation/task/task_bloc.dart';
+import '../../domain/use_case/auth/auth_use_cases.dart';
+import '../../presentation/pages/register/register_view.dart';
+import '../../presentation/pages/splash/splash_view.dart';
+import '../../presentation/pages/task/task_bloc.dart';
 
 part 'routes.dart';
 
 class AppRouter {
-  GoRouter get router => GoRouter(
+  AppRouter._();
+
+  static final GoRouter router = GoRouter(
     initialLocation: Routes.splash,
     routes: [
       GoRoute(path: Routes.splash, builder: (context, state) => SplashView()),
@@ -27,9 +36,42 @@ class AppRouter {
           child: LoginView(),
         ),
       ),
+      GoRoute(
+        path: Routes.register,
+        builder: (context, state) => BlocProvider(
+          create: (context) => sl<RegisterBloc>(),
+          child: RegisterView(),
+        ),
+      ),
+      GoRoute(
+        path: Routes.forgotPassword,
+        builder: (context, state) => BlocProvider(
+          create: (context) => sl<ForgotPasswordBloc>(),
+          child: ForgotPasswordView(),
+        ),
+      ),
+      GoRoute(
+        path: Routes.account,
+        builder: (context, state) => BlocProvider(
+          create: (context) => sl<AccountBloc>(),
+          child: AccountView(),
+        ),
+      ),
       ShellRoute(
         builder: (context, state, child) => WrapperView(child: child),
-        redirect: (context, state) {
+        redirect: (context, state) async {
+          final authUseCases = sl<AuthUseCases>();
+
+          var isLoggedIn = await authUseCases.isLoggedInUseCase.execute().then((
+            result,
+          ) {
+            return result.fold((failure) => false, (isLoggedIn) => isLoggedIn);
+          });
+
+          if (isLoggedIn) {
+            return null;
+          }
+
           return Routes.login;
         },
         routes: [
